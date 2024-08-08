@@ -33,8 +33,8 @@ Antes de começar, certifique-se de ter o seguinte instalado:
 Clone o repositório para sua máquina local usando o Git:
 
 ```bash
-git clone https://github.com/SeuUsuario/SeuRepositorio.git
-cd SeuRepositorio
+git https://github.com/richardjalgarve/copypasteocr.git
+cd copypasteocr
 ```
 
 ### 2. Crie e Ative um Ambiente Virtual
