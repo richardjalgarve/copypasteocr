@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget
 from PyQt5.QtCore import Qt, QRect
-from PyQt5.QtGui import QPixmap, QPainter, QPen
+from PyQt5.QtGui import QPixmap, QPainter, QPen, QGuiApplication
 
 class ScreenshotSelector(QMainWindow):
     def __init__(self):
@@ -10,7 +10,7 @@ class ScreenshotSelector(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle('Screenshot Selector')
-        self.setWindowOpacity(0.3)
+        self.setWindowOpacity(0.2)
         self.setWindowState(Qt.WindowFullScreen)
         self.setWindowFlag(Qt.FramelessWindowHint)
 
@@ -27,31 +27,45 @@ class ScreenshotSelector(QMainWindow):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.start_point = event.pos()
+            self.start_point = event.globalPos()
             self.is_selecting = True
 
     def mouseMoveEvent(self, event):
         if self.is_selecting:
-            self.end_point = event.pos()
+            self.end_point = event.globalPos()
             self.update()
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.end_point = event.pos()
+            self.end_point = event.globalPos()
             self.is_selecting = False
             self.capture_screenshot()
 
     def paintEvent(self, event):
         if self.start_point and self.end_point:
             painter = QPainter(self)
-            pen = QPen(Qt.blue, 2, Qt.SolidLine)
+            pen = QPen(Qt.red, 2, Qt.SolidLine)
             painter.setPen(pen)
-            rect = QRect(self.start_point, self.end_point)
-            painter.drawRect(rect)
+
+            # Obtenha a geometria da tela atual para calcular as coordenadas relativas
+            current_screen = QGuiApplication.screenAt(self.start_point)
+            if current_screen:
+                screen_rect = current_screen.geometry()
+                adjusted_start = self.start_point - screen_rect.topLeft()
+                adjusted_end = self.end_point - screen_rect.topLeft()
+                rect = QRect(adjusted_start, adjusted_end)
+                painter.drawRect(rect)
 
     def capture_screenshot(self):
         rect = QRect(self.start_point, self.end_point).normalized()
-        screen = QApplication.primaryScreen()
-        screenshot = screen.grabWindow(0, rect.left(), rect.top(), rect.width(), rect.height())
-        screenshot.save('screenshot.png', 'png')
+        
+        # Itera sobre todos os monitores
+        for screen in QGuiApplication.screens():
+            if screen.geometry().intersects(rect):
+                # Converte as coordenadas globais para as coordenadas do monitor
+                screen_rect = rect.translated(-screen.geometry().topLeft())
+                screenshot = screen.grabWindow(0, screen_rect.left(), screen_rect.top(), screen_rect.width(), screen_rect.height())
+                screenshot.save('screenshot.png', 'png')
+                break
+        
         self.close()

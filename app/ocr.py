@@ -4,7 +4,6 @@ import pytesseract
 class OCR:
     def __init__(self, lang='eng'):
         self.lang = lang
-        # Ajuste para o caminho do Tesseract
         pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
     def extract_text(self, image_path):
